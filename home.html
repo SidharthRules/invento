@@ -7,7 +7,7 @@
     <script src="bootstrap/js/bootstrap.min.js"></script>
     <script src="bootstrap/js/jquery-2.2.4.min.js"></script>
     <style type="text/css">
-    	#uploadForm, #data, #myLoaderSide, #datas{
+    	#uploadForm, #data, #myLoaderSide, #datas, #editForm{
     		display: none;
     	}
 
@@ -103,8 +103,23 @@
 					</table>
 					<div id="data">
 						<div class='row'>
-							<div class='col-sm-5' id="itemImg">
-
+							<div class='col-sm-5'>
+								<div id="itemImg"></div>
+								<div id='imgUpd' style="margin-top: 15px;">
+									<form id='editForm' method='post'>
+										<div class='form-group'>
+												<input name='updImage' type='file' style='max-width:100%;display: initial;' />
+										</div>
+										<input name='itemId' id='imID' type='hidden' />
+										<input name='itemBy' id='imUs' type='hidden' />
+										<script type='text/javascript'>
+											document.getElementById('imUs').value=localStorage.getItem('user');
+										</script>
+										<div class='form-group'>
+											<input type='submit' class='btn btn-primary form-control' value='Update Image' class='btnSubmit' />
+										</div>
+									</form>
+								</div>
 							</div>
 							<div class='col-sm-7' id="itemDets">
 
@@ -247,6 +262,7 @@
 			$.getJSON(url,function(result){
 				$.each(result,function(i,field)
 				{
+					document.getElementById('imID').value=a;
 					det.innerHTML="<h4>"+field.name+"</h4>"+"<p><b>Description: </b>"+field.description+"</p>"+
 					"<div class='form-group'>"+
  						"<input type='text' class='form-control' value = '"+field.box+"' id='editBox' placeholder='Box Number'>"+
@@ -264,6 +280,7 @@
 					"<span class='pull-right'><a onclick=goBack()>Back</a></span>";
 				});
 				$('#myLoader').hide();
+				$('#editForm').show();
 			});
 			$('#data').show();
 		}
@@ -379,6 +396,7 @@
 		{
 			$('#datas').hide();
 			$('#myLoader').show();
+			$('#data').hide();
 			var tableHeader = document.getElementById('datas');
 			tableHeader.innerHTML="<thead><tr><th>Name</th><th>Description</th><th>Box ID</th><th>Vendor</th><th>Location</th><th>Quantity</th></tr></thead><tbody id='AlarmData'></tbody>";
 			var url="server/index.php?showall";
@@ -449,6 +467,31 @@
 						$('#add').show();
 						$('#myLoaderSide').hide();
 						$('#sidebar').show();
+			    	} 	        
+			   });
+			}));
+
+			$("#editForm").on('submit',(function(e) {
+				e.preventDefault();
+				$('#myLoader').show();
+				$.ajax({
+		        	url: "eupload.php",
+					type: "POST",
+					data:  new FormData(this),
+					contentType: false,
+		    	    cache: false,
+					processData:false,
+					success: function(data)
+				    {
+				    	//alert("Successfully Uploaded");
+				    	$('#myLoader').hide();
+				    	$('#editForm').hide();
+				    	showItem(document.getElementById('imID').value);
+				    	
+				    },
+				  	error: function() 
+			    	{
+			    		alert("Failed!");
 			    	} 	        
 			   });
 			}));
