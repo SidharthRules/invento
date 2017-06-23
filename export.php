@@ -8,22 +8,21 @@ $DB_Password = "Sidharth12";             //MySQL Password
 $DB_DBName = "u887115389_inven";         //MySQL Database Name  
 if(isset($_GET['all']))
 {
-    $DB_TBLName = "items"; //MySQL Table Name   
     $filename = "Invento_Current[$cdate]";         //File Name
+    $sql = "Select * from items";
 }
 else if(isset($_GET['issued']))
 {
-    $DB_TBLName = "issued"; //MySQL Table Name   
     $filename = "Invento_Issued[$cdate]";         //File Name
+    $sql = "select items.name, issued.quantity, issued.name, issued.idesc, issued.idate from items join issued using (id)";
 }
 else if(isset($_GET['rejected']))
 {
-    $DB_TBLName = "rejected"; //MySQL Table Name   
     $filename = "Invento_Issued[$cdate]";         //File Name
+    $sql = "select items.name, rejected.quantity, rejected.box, rejected.rdesc, rejected.idate from items join rejected using (id)";
 }
 /*******YOU DO NOT NEED TO EDIT ANYTHING BELOW THIS LINE*******/    
-//create MySQL connection   
-$sql = "Select * from $DB_TBLName";
+//create MySQL connection
 $Connect = @mysql_connect($DB_Server, $DB_Username, $DB_Password) or die("Couldn't connect to MySQL:<br>" . mysql_error() . "<br>" . mysql_errno());
 //select database   
 $Db = @mysql_select_db($DB_DBName, $Connect) or die("Couldn't select database:<br>" . mysql_error(). "<br>" . mysql_errno());   
