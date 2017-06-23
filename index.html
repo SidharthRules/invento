@@ -130,7 +130,7 @@
 
 			$('#save').click(function(){
 				var url="server/index.php?user="+document.getElementById('name').value+"&pass="+document.getElementById('password').value;
-				prompt("as",url);
+				//prompt("as",url);
 				$.getJSON(url,function(result){
 					if(result.check=='True')
 						{
