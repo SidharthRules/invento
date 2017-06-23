@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Invento</title>
+	<meta name="viewport" content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width" />
+    <link href="bootstrap/css/bootstrap.min.css" rel="stylesheet">
+    <script src="bootstrap/js/bootstrap.min.js"></script>
+    <script src="bootstrap/js/jquery-2.2.4.min.js"></script>
+    <style type="text/css">
+    	#data{
+    		display: none;
+    	}
+
+    </style>
+    <script type="text/javascript">
+ 		if(localStorage.getItem("login")=="True")
+ 		{
+ 			window.open("home.html","_parent");
+ 		}
+ 	</script>
+</head>
+<body background="img/tree_bark.png">
+	<div class='jumbotron'>
+		<h1 style="text-align: center;">EL Inventory System</h1>
+	</div>
+
+	<div class="container">
+		<div class="row">
+			<div class ="col-sm-3">
+				<div class="panel panel-default">
+				  <div class="panel-heading">Login to Add / Modify Inventory</div>
+				  <div class="panel-body">
+				 	<div class="form-group">
+					  <label for="name">Username:</label>
+					  <input type="text" class="form-control" id="name" placeholder="Username">
+					</div>
+				 	<div class="form-group">
+					  <label for="name">Password:</label>
+					  <input type="password" class="form-control" id="password" placeholder="Password">
+					</div>
+					<button type="button" style="width: 100%;" class="btn btn-primary" id="save">Login Now</button>
+				  </div>
+				</div>
+			</div>
+			<div class ="col-sm-9">
+				<div class="panel panel-default" style="overflow-x: auto;">
+				  <div class="panel-heading">Summary Of Inventory</div>
+				  <div class="panel-body" >
+					<table id="datas" class="table table-hover">
+						<thead>
+							<tr>
+							<th>Name</th>
+							<th>Description</th>
+							<th>Box ID</th>
+							<th>Vendor</th>
+							<th>Location</th>
+							<th>Quantity</th>
+							</tr>
+						</thead>
+						<tbody id="AlarmData">
+						</tbody>
+					</table>
+					<div id="data">
+						<div class='row'>
+							<div class='col-sm-5' id="itemImg">
+
+							</div>
+							<div class='col-sm-7' id="itemDets">
+
+							</div>
+						</div>
+					</div>
+				  </div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="well" style="text-align: center;">
+		&copy; Sidharth Patnaik
+	</div>
+	<script type="text/javascript">
+
+		function goBack()
+		{
+			pullData();
+			$('#datas').show();
+			$('#data').hide();
+		}
+
+		function showItem(a)
+		{
+			$('#datas').hide();
+			var img=document.getElementById('itemImg');
+			var det=document.getElementById('itemDets');
+			var url="server/index.php?show&id="+a;
+			var table=document.getElementById('AlarmData');
+			$.getJSON(url,function(result){
+				$.each(result,function(i,field)
+				{
+					img.innerHTML="<center><img style='max-width:100%' src='"+field.img+"'/></center>";
+					det.innerHTML="<h4>"+field.name+"</h4>"+"<p><b>Description: </b>"+field.description+"</p>"+
+					"<b>Box: </b>"+field.box+"<br/>"+
+					"<b>Vendor: </b>"+field.vendor+"<br/>"+
+					"<b>Location: </b>"+field.location+"<br/>"+
+					"<b>Quantity: </b>"+field.quantity+"<br/>"+
+					"<b>Added By: </b>"+field.addby+"<br/>"+
+					"<a href='#' class='pull-right' onclick=goBack()>Back</a>";
+				});
+			});
+			$('#data').show();
+			
+		}
+
+		function pullData()
+		{
+			var url="server/index.php?showall";
+			//prompt("a",url);
+			var table=document.getElementById('AlarmData'); 
+			table.innerHTML="";
+			$.getJSON(url,function(result){
+				$.each(result,function(i,field){
+					table.innerHTML += "<tr onclick=showItem(\""+field.id+"\")><td>"+field.name+"</td><td>"+field.description+"</td><td>"+field.box+"</td><td>"+field.vendor+"</td><td>"+field.location+"</td><td>"+field.quantity+"</td></tr>";
+				});
+			});
+		}
+
+		$(document).ready(function(){
+
+			pullData();
+
+			$('#save').click(function(){
+				var url="server/index.php?user="+document.getElementById('name').value+"&pass="+document.getElementById('password').value;
+				prompt("as",url);
+				$.getJSON(url,function(result){
+					if(result.check=='True')
+						{
+							localStorage.setItem("login","True");
+							localStorage.setItem("user",document.getElementById('name').value);
+							window.open("index.html","_parent");
+						}
+					else
+						alert('Failed to add');
+				});
+			});
+		});
+	</script>
+</body>
+</html>

@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Invento</title>
+	<meta name="viewport" content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width" />
+    <link href="bootstrap/css/bootstrap.min.css" rel="stylesheet">
+    <script src="bootstrap/js/bootstrap.min.js"></script>
+    <script src="bootstrap/js/jquery-2.2.4.min.js"></script>
+    <style type="text/css">
+    	#uploadForm, #data, #myLoaderSide, #datas{
+    		display: none;
+    	}
+
+    </style>
+    <script type="text/javascript">
+ 		if(localStorage.getItem("login")!="True")
+ 		{
+ 			window.open("index.html","_parent");
+ 		}
+ 	</script>
+</head>
+<body background="img/tree_bark.png">
+	<div class='jumbotron'>
+		<h1 style="text-align: center;">EL Inventory System</h1>
+	</div>
+
+	<div class="container">
+		<div class="row">
+			<div class ="col-sm-3">
+				<div class="panel panel-default">
+				  <div class="panel-heading" id='proDets'>Welcome</div>
+				  <div class="panel-body">
+				  	<div id="myLoaderSide">
+				  		<center><img src='img/ajax.gif'/></center>
+				  	</div>
+				  	<div id="sidebar">
+				  		<button type="button" style="width: 100%;" class="btn btn-primary" id="add">Add Item</button>
+				  	<form id="uploadForm" method="post">
+		  				<div class="form-group">
+						 	<input type="text" class="form-control" name='itemName' placeholder="Item Name">
+						</div>
+						<div class="form-group">
+						 	<input type="text" class="form-control" name='itemDesc' placeholder="Item Description">
+						</div>
+						<div class="form-group">
+						 	<input type="text" class="form-control" name='itemPrice' placeholder="Item Price">
+						</div>
+						<div class="form-group">
+		  					<input name="userImage" type="file" style="max-width:100%;display: initial;" />
+						</div>
+						<div class="form-group">
+						 	<input type="text" class="form-control" name='itemBox' placeholder="Box Number">
+						</div>
+						<div class="form-group">
+						 	<input type="text" class="form-control" name='itemVendor' placeholder="Item Vendor">
+						</div>
+						<div class="form-group">
+						 	<input type="text" class="form-control" name='itemLocation' placeholder="Item Location">
+						</div>
+						<div class="form-group">
+						 	<input type="text" class="form-control" name='itemQua' placeholder="Item Quantity">
+						</div>
+						<input name="itemBy" id='imUser' type="hidden" />
+						<script type="text/javascript">
+							document.getElementById('imUser').value=localStorage.getItem('user');
+						</script>
+						<div class="form-group">
+							<input type="submit" class="btn btn-primary form-control" value="Submit" class="btnSubmit" />
+						</div>
+					</form>
+				  	</div>
+				  </div>
+				</div>
+				<div class="panel panel-default">
+				  <div class="panel-heading" id='proDets'>Export Data</div>
+				  <div class="panel-body">
+				  	<a href="export.php?all" style="width: 100%;" class="btn btn-primary">Current Inventory</a>
+				  	<a href="export.php?issued" style="width: 100%;margin-top: 10px;" class="btn btn-primary">Issued Items</a>
+				  	<a href="export.php?rejected" style="width: 100%;margin-top: 10px;" class="btn btn-primary">Rejected Items</a>
+				  </div>
+				</div>
+			</div>
+			<div class ="col-sm-9">
+				<div class="panel panel-default" style="overflow-x: auto;">
+				  <div class="panel-heading"><a href="home.html">Summary Of Inventory</a> [<b id="loc">Home</b>]<span class='pull-right'><a onclick=issueList()>Issued List</a> . <a onclick=rejectList()>Rejected List</a></span></div>
+				  <div class="panel-body" >
+				  	<div id="myLoader">
+				  		<center><img src='img/ajax.gif'/></center>
+				  	</div>
+					<table id="datas" class="table table-hover">
+						<thead>
+							<tr>
+							<th>Name</th>
+							<th>Description</th>
+							<th>Box ID</th>
+							<th>Vendor</th>
+							<th>Location</th>
+							<th>Quantity</th>
+							</tr>
+						</thead>
+						<tbody id="AlarmData">
+						</tbody>
+					</table>
+					<div id="data">
+						<div class='row'>
+							<div class='col-sm-5' id="itemImg">
+
+							</div>
+							<div class='col-sm-7' id="itemDets">
+
+							</div>
+						</div>
+					</div>
+				  </div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="well" style="text-align: center;">
+		&copy; Sidharth Patnaik
+	</div>
+	<script type="text/javascript">
+
+		function goBack()
+		{
+			pullData();
+			$('#datas').show();
+			$('#data').hide();
+		}
+
+		function submitIssued(a)
+		{
+			var url = "server/index.php?submit&id="+a;
+			$.getJSON(url,function(result){
+				if(result.check=="True")
+				{
+					alert ("Successfully Submitted !");
+					pullData();
+				}
+				else
+					alert ("Falied !");
+			});
+		}
+
+		function showIssued(a)
+		{
+			$('#datas').hide();
+			$('#myLoader').show();
+			document.getElementById("loc").innerHTML="Issued List";
+			var tableHeader = document.getElementById('datas');
+			tableHeader.innerHTML="<thead><tr><th>Name</th><th>Description</th><th>Quantity</th><th>Date</th><th>Submit</th></tr></thead><tbody id='AlarmData'></tbody>";
+			var url = "server/index.php?issue&id="+a;
+			var table=document.getElementById('AlarmData'); 
+			table.innerHTML="";
+			$.getJSON(url,function(result){
+				$.each(result,function(i,field){
+					table.innerHTML += "<tr><td>"+field.name+"</td><td>"+field.idesc+"</td><td>"+field.quantity+"</td><td>"+field.idate+"</td><td>[<a onclick=submitIssued(\""+field.issueid+"\")>Yes</a>]</td></tr>";
+				});
+				$('#myLoader').hide();
+				$('#datas').show();
+			});
+		}
+
+		function issueList()
+		{
+			$('#datas').hide();
+			$('#myLoader').show();
+			$('#data').hide();
+			document.getElementById("loc").innerHTML="Issued List";
+			var tableHeader = document.getElementById('datas');
+			tableHeader.innerHTML="<thead><tr><th>Name</th><th>Description</th><th>Box ID</th><th>Vendor</th><th>Location</th></tr></thead><tbody id='AlarmData'></tbody>";
+			var url = "server/index.php?issueList";
+			var table=document.getElementById('AlarmData'); 
+			table.innerHTML="";
+			$.getJSON(url,function(result){
+				$.each(result,function(i,field){
+					table.innerHTML += "<tr onclick=showIssued(\""+field.id+"\")><td>"+field.name+"</td><td>"+field.description+"</td><td>"+field.box+"</td><td>"+field.vendor+"</td><td>"+field.location+"</td></tr>";
+				});
+				$('#myLoader').hide();
+				$('#datas').show();
+			});
+		}
+
+		function showRejected(a)
+		{
+			$('#datas').hide();
+			$('#myLoader').show();
+			document.getElementById("loc").innerHTML="Rejected List";
+			var tableHeader = document.getElementById('datas');
+			tableHeader.innerHTML="<thead><tr><th>Box</th><th>Description</th><th>Quantity</th><th>Date</th></tr></thead><tbody id='AlarmData'></tbody>";
+			var url = "server/index.php?reject&id="+a;
+			var table=document.getElementById('AlarmData'); 
+			table.innerHTML="";
+			$.getJSON(url,function(result){
+				$.each(result,function(i,field){
+					table.innerHTML += "<tr><td>"+field.box+"</td><td>"+field.rdesc+"</td><td>"+field.quantity+"</td><td>"+field.idate+"</td></tr>";
+				});
+				$('#myLoader').hide();
+				$('#datas').show();
+			});
+		}
+
+		function rejectList()
+		{
+			$('#datas').hide();
+			$('#myLoader').show();
+			$('#data').hide();
+			document.getElementById("loc").innerHTML="Rejected List";
+			var tableHeader = document.getElementById('datas');
+			tableHeader.innerHTML="<thead><tr><th>Name</th><th>Description</th><th>Box ID</th><th>Vendor</th><th>Location</th></tr></thead><tbody id='AlarmData'></tbody>";
+			var url = "server/index.php?rejectList";
+			var table=document.getElementById('AlarmData'); 
+			table.innerHTML="";
+			$.getJSON(url,function(result){
+				$.each(result,function(i,field){
+					table.innerHTML += "<tr onclick=showRejected(\""+field.id+"\")><td>"+field.name+"</td><td>"+field.description+"</td><td>"+field.box+"</td><td>"+field.vendor+"</td><td>"+field.location+"</td></tr>";
+				});
+				$('#myLoader').hide();
+				$('#datas').show();
+			});
+		}
+
+		function updID(a)
+		{
+			//($_GET['id'],$_GET['quantity'],$_GET['box'],$_GET['vendor'],$_GET['location'],$_GET['addby'])
+			var url="server/index.php?id="+a+"&quantity="+document.getElementById('editQua').value+"&box="+document.getElementById('editBox').value+"&vendor="+document.getElementById('editVendor').value+"&location="+document.getElementById('editLocation').value+"&addby="+localStorage.getItem("user");
+			$.getJSON(url,function(result){
+				if(result.check=="True")
+				{
+					alert("Successfully Edited !");
+					showItem(a);
+				}
+				else
+				{
+					alert("Failed !");
+				}
+			});
+		}
+
+		function editID(a)
+		{
+			$('#datas').hide();
+			$('#myLoader').show();
+			var img=document.getElementById('itemImg');
+			var det=document.getElementById('itemDets');
+			var url="server/index.php?show&id="+a;
+			$.getJSON(url,function(result){
+				$.each(result,function(i,field)
+				{
+					det.innerHTML="<h4>"+field.name+"</h4>"+"<p><b>Description: </b>"+field.description+"</p>"+
+					"<div class='form-group'>"+
+ 						"<input type='text' class='form-control' value = '"+field.box+"' id='editBox' placeholder='Box Number'>"+
+					"</div>"+
+					"<div class='form-group'>"+
+						"<input type='text' class='form-control' value = '"+field.vendor+"' id='editVendor' placeholder='Item Vendor'>"+
+					"</div>"+
+					"<div class='form-group'>"+
+						"<input type='text' class='form-control' value = '"+field.location+"' id='editLocation' placeholder='Item Location'>"+
+					"</div>"+
+					"<div class='form-group'>"+
+						"<input type='text' class='form-control' value = '"+field.quantity+"' id='editQua' placeholder='Item Quantity'>"+
+					"</div>"+
+					"<button type='button' class='btn btn-primary' onclick=updID(\""+a+"\")>Update Item</button><br/>"+
+					"<span class='pull-right'><a onclick=goBack()>Back</a></span>";
+				});
+				$('#myLoader').hide();
+			});
+			$('#data').show();
+		}
+
+		function delID(a)
+		{
+			var url="server/index.php?delete&id="+a;
+			$.getJSON(url,function(result){
+				if(result.check=='True')
+				{
+					alert("Successfully Deleted !");
+					pullData();
+					$('#datas').show();
+					$('#data').hide();
+				}
+				else
+					alert("Failed !");
+			});			
+		}
+
+		function issueID(a)
+		{
+			$('#datas').hide();
+			var img=document.getElementById('itemImg');
+			var det=document.getElementById('itemDets');
+			det.innerHTML="<div class='form-group'>"+
+ 						"<input type='text' class='form-control' id='issueQua' placeholder='Quantity'>"+
+					"</div>"+
+					"<div class='form-group'>"+
+						"<input type='text' class='form-control' id='issueName' placeholder='Name of the Issuer.'>"+
+					"</div>"+
+					"<div class='form-group'>"+
+						"<input type='text' class='form-control' id='issueDesc' placeholder='Description for issuing'>"+
+					"</div>"+
+					"<button type='button' class='btn btn-primary' id='issueItem' )>Issue Item</button><br/>"+
+					"<span class='pull-right'><a onclick=goBack()>Back</a></span>";
+			$("#issueItem").click(function(){
+				var url="server/index.php?addissue&id="+a+"&quantity="+document.getElementById('issueQua').value+"&name="+document.getElementById('issueName').value+"&desc="+document.getElementById('issueDesc').value;
+				$.getJSON(url,function(result){
+					if(result.check=="True")
+					{
+						alert("Successfully Issued !");
+						showItem(a);
+					}
+					else
+					{
+						alert("Failed !");
+					}
+				});
+				});
+		}
+
+		function rejectID(a)
+		{
+			$('#datas').hide();
+			var img=document.getElementById('itemImg');
+			var det=document.getElementById('itemDets');
+			det.innerHTML="<div class='form-group'>"+
+ 						"<input type='text' class='form-control' id='rejectQua' placeholder='Quantity'>"+
+					"</div>"+
+					"<div class='form-group'>"+
+						"<input type='text' class='form-control' id='rejectBox' placeholder='Give the Box ID'>"+
+					"</div>"+
+					"<div class='form-group'>"+
+						"<input type='text' class='form-control' id='rejectDesc' placeholder='Purpose of Rejecting'>"+
+					"</div>"+
+					"<button type='button' class='btn btn-primary' id='rejectItem' )>Reject Item</button><br/>"+
+					"<span class='pull-right'><a onclick=goBack()>Back</a></span>";
+			$("#rejectItem").click(function(){
+				var url="server/index.php?addreject&id="+a+"&quantity="+document.getElementById('rejectQua').value+"&box="+document.getElementById('rejectBox').value+"&desc="+document.getElementById('rejectDesc').value;
+				$.getJSON(url,function(result){
+					if(result.check=="True")
+					{
+						alert("Successfully Placed !");
+						showItem(a);
+					}
+					else
+					{
+						alert("Failed !");
+					}
+				});
+				});
+		}
+
+		function showItem(a)
+		{
+			$('#datas').hide();
+			$('#myLoader').show();
+			var img=document.getElementById('itemImg');
+			var det=document.getElementById('itemDets');
+			var url="server/index.php?show&id="+a;
+			var table=document.getElementById('AlarmData');
+			$.getJSON(url,function(result){
+				$.each(result,function(i,field)
+				{
+					img.innerHTML="<center><img style='max-width:100%' src='"+field.img+"'/></center>";
+					det.innerHTML="<h4>"+field.name+"</h4>"+"<p><b>Description: </b>"+field.description+"</p>"+
+					"<b>Box: </b>"+field.box+"<br/>"+
+					"<b>Vendor: </b>"+field.vendor+"<br/>"+
+					"<b>Location: </b>"+field.location+"<br/>"+
+					"<b>Quantity: </b>"+field.quantity+"<br/>"+
+					"<b>Added By: </b>"+field.addby+"<br/>"+
+					"<b>Last Modified: </b>"+field.adate+"<br/>"+
+					"<span class='pull-right'><a onclick=editID(\""+a+"\")>Edit</a> . <a onclick=issueID(\""+a+"\")>Issue</a> . <a onclick=rejectID(\""+a+"\")>Reject</a> . <a style='color:red;' onclick=delID(\""+a+"\")>Delete</a> . <a onclick=goBack()>Back</a></span>";
+				});
+				$('#myLoader').hide();
+			});
+			$('#data').show();
+			
+		}
+
+		function pullData()
+		{
+			$('#datas').hide();
+			$('#myLoader').show();
+			var tableHeader = document.getElementById('datas');
+			tableHeader.innerHTML="<thead><tr><th>Name</th><th>Description</th><th>Box ID</th><th>Vendor</th><th>Location</th><th>Quantity</th></tr></thead><tbody id='AlarmData'></tbody>";
+			var url="server/index.php?showall";
+			//prompt("a",url);
+			var table=document.getElementById('AlarmData'); 
+			table.innerHTML="";
+			$.getJSON(url,function(result){
+				$.each(result,function(i,field){
+					table.innerHTML += "<tr onclick=showItem(\""+field.id+"\")><td>"+field.name+"</td><td>"+field.description+"</td><td>"+field.box+"</td><td>"+field.vendor+"</td><td>"+field.location+"</td><td>"+field.quantity+"</td></tr>";
+				});
+				$('#myLoader').hide();
+				$('#datas').show();
+			});
+		}
+
+		$(document).ready(function(){
+
+			pullData();
+
+			document.getElementById('proDets').innerHTML="Welcome "+localStorage.getItem("user").toUpperCase()+"<span class='pull-right'>[<a id='logout'>Logout</a>]</span>";
+
+			$('#add').click(function(){
+				$('#uploadForm').show();
+				$('#add').hide();
+			});
+
+			$('#save').click(function(){
+				var url="server/index.php?user="+document.getElementById('name').value+"&pass="+document.getElementById('password').value;
+				$.getJSON(url,function(result){
+					if(result.check=='True')
+						{
+							window.open("index.html","_parent");
+						}
+					else
+						alert('Failed to add');
+				});
+			});
+
+			$('#logout').click(function(){
+				localStorage.setItem("login","false");
+				window.open("index.html","_parent");
+			});
+
+			$("#uploadForm").on('submit',(function(e) {
+				e.preventDefault();
+				$('#myLoaderSide').show();
+				$('#sidebar').hide();
+				$.ajax({
+		        	url: "upload.php",
+					type: "POST",
+					data:  new FormData(this),
+					contentType: false,
+		    	    cache: false,
+					processData:false,
+					success: function(data)
+				    {
+				    	///alert("Successfully Uploaded");
+				    	pullData();
+				    	$('#uploadForm').hide();
+						$('#add').show();
+						$('#myLoaderSide').hide();
+						$('#sidebar').show();
+				    },
+				  	error: function() 
+			    	{
+			    		alert("Failed!");
+			    		$('#uploadForm').hide();
+						$('#add').show();
+						$('#myLoaderSide').hide();
+						$('#sidebar').show();
+			    	} 	        
+			   });
+			}));
+		});
+	</script>
+</body>
+</html>
